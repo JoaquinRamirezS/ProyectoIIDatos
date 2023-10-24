@@ -1,5 +1,5 @@
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Font;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,64 +7,108 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Servidor extends JFrame {
-    private JTextArea textArea;
+    Font customFont = new Font("Arial", Font.BOLD, 13);
+    private JTextArea serverTextArea;
 
     public Servidor() {
+        serverTextArea = new JTextArea(10, 40);
+        serverTextArea.setEditable(false);
+        serverTextArea.setFont(customFont);
+        add(serverTextArea);
+
         setTitle("Servidor");
-        setSize(500, 550);
+        setSize(450, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        textArea = new JTextArea();
-        textArea.setEditable(false);
-
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        add(scrollPane, BorderLayout.CENTER);
+        setLocationRelativeTo(null);
+        setVisible(true);
+        setResizable(false);
     }
 
-    public void startServer() {
-        int puerto = 1800;
+    public void logMessage(String message) {
+        serverTextArea.append(message + "\n");
+    }
+
+    public static void main(String[] args) {
+        Servidor server = new Servidor();
+        server.logMessage("Servidor esperando conexiones en el puerto 1800...\n");
+
         ServerSocket serverSocket = null;
 
         try {
-            serverSocket = new ServerSocket(puerto);
-            textArea.append("El servidor está escuchando en el puerto " + puerto + "\n");
-
+            serverSocket = new ServerSocket(1800);
             while (true) {
-                Socket socketCliente = serverSocket.accept();
-                textArea.append("Cliente conectado desde " + socketCliente.getInetAddress() + "\n");
 
-                DataInputStream input = new DataInputStream(socketCliente.getInputStream());
-                DataOutputStream output = new DataOutputStream(socketCliente.getOutputStream());
+                Socket socket = serverSocket.accept();
+                server.logMessage("Cliente conectado desde: " + socket.getInetAddress());
 
-                String nombre = input.readUTF();
-                String expresion = input.readUTF();
-
-                textArea.append("Nombre: " + nombre + "\n");
-                textArea.append("Expresión: " + expresion + "\n");
-
-                String resultado =  expresion;
-                output.writeUTF(resultado);
-
-                socketCliente.close();
+                // Initialize a thread for each client (Each client is handled in a separate thread to allow the server to serve multiple clients simultaneously)
+                Thread clientThread = new Thread(new clientHandler(socket, server));
+                clientThread.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (serverSocket != null) {
-                    serverSocket.close();
-                }
+                if (serverSocket != null) serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+//Manages the interactions of the client with the server
+class clientHandler implements Runnable {
+    private Socket socket;
+    private Servidor server;
+
+    public clientHandler(Socket socket, Servidor server) {
+        this.socket = socket;
+        this.server = server;
+    }
+
+    @Override
+    public void run() {
+        DataInputStream input = null;
+        DataOutputStream output = null;
+
+        try {
+            input = new DataInputStream(socket.getInputStream());
+            output = new DataOutputStream(socket.getOutputStream());
+
+            // Receive the data from the client
+            String date = input.readUTF();
+            String name = input.readUTF();
+            String expression = input.readUTF();
+
+            //Show the data on the server
+            server.logMessage("Datos recibidos del cliente:");
+            server.logMessage("Fecha:" + date);
+            server.logMessage("Nombre: " + name);
+            server.logMessage("Expresión: " + expression);
+            
+            // Pending
+            String result = resultExpression(expression);
+            server.logMessage("Resultado: " + result + "\n");
+
+            // Send the result to the client
+            output.writeUTF(result);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (input != null) input.close();
+                if (output != null) output.close();
+                if (socket != null) socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Servidor server = new Servidor();
-            server.setVisible(true);
-            server.startServer();
-        });
+    // Pending
+    private String resultExpression(String expression) {
+        return expression;
     }
 }

@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.Font;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +20,7 @@ public class Servidor extends JFrame {
         add(serverTextArea);
 
         JScrollPane scrollPane = new JScrollPane(serverTextArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollPane);
 
@@ -46,9 +48,15 @@ public class Servidor extends JFrame {
         ServerSocket serverSocket = null;
 
         try {
+            // Verificar la existencia del archivo CSV
+            File file = new File("Register.csv");
+            if (!file.exists()) {
+                System.out.println("El archivo no existe en la ubicación especificada.");
+                return;
+            }
+
             serverSocket = new ServerSocket(1800);
             while (true) {
-
                 Socket socket = serverSocket.accept();
                 server.logMessage("Cliente conectado desde: " + socket.getInetAddress());
 
@@ -68,16 +76,14 @@ public class Servidor extends JFrame {
     }
 }
 
-//Manages the interactions of the client with the server
+// Manages the interactions of the client with the server
 class clientHandler implements Runnable {
     private Socket socket;
     private Servidor server;
 
-
     public clientHandler(Socket socket, Servidor server) {
         this.socket = socket;
         this.server = server;
-
     }
 
     @Override
@@ -94,18 +100,20 @@ class clientHandler implements Runnable {
             String name = input.readUTF();
             String expression = input.readUTF();
 
-            //Show the data on the server
+            // Show the data on the server
             server.logMessage("Datos recibidos del cliente:");
             server.logMessage("Fecha:" + date);
             server.logMessage("Nombre: " + name);
             server.logMessage("Expresión: " + expression);
-            
+
             // Pending
             double result = server.evaluateExpression(expression);
             server.logMessage("Resultado: " + result + "\n");
 
+            // Guardar los datos en el archivo CSV
+            writeToCSV("Register.csv", date, expression, result);
             // Send the result to the client
-             output.writeDouble(result);
+            output.writeDouble(result);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -117,6 +125,16 @@ class clientHandler implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+    // Write on CSV File
+    private void writeToCSV(String filename, String date, String expression, double result) {
+        try {
+            FileWriter writer = new FileWriter(filename, true);
+            writer.append(date).append(",").append(expression).append(",").append(String.valueOf(result)).append("\n");
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

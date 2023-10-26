@@ -1,7 +1,7 @@
 import javax.swing.*;
 import org.opencv.core.Core;
+import org.opencv.features2d.FlannBasedMatcher;
 import org.opencv.videoio.VideoCapture;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionListener;
@@ -22,6 +22,8 @@ public class Client extends JFrame {
     Socket SocketClient;
     VideoCapture camera;
     JFrame cameraFrame; 
+    private History historyFrame;
+    
 
     public void initialize() {
         //Main Panel
@@ -115,6 +117,11 @@ public class Client extends JFrame {
                 String date = pdate.getText();
                 String name = tfname.getText();
                 String expresion = tfexpression.getText();
+
+                    // Limpieza de la expresión
+                expresion = expresion.replaceAll("\\s+", " "); // Reemplaza múltiples espacios con un solo espacio
+                expresion = expresion.trim(); // Elimina espacios al principio y al final de la expresión
+
         
                 try {
                     Socket socket = new Socket("127.0.0.1", 1800);
@@ -129,8 +136,9 @@ public class Client extends JFrame {
                     System.out.println("Datos enviados al servidor.");
         
                     // Show the result from the server
-                    String result = input.readUTF();
+                    double result = input.readDouble();
                     taresult.setText("\nResultado: " + result);
+
 
                     socket.close();
         
@@ -141,7 +149,7 @@ public class Client extends JFrame {
             }
         });        
 
-        //Buttom "expand"
+        //Buttom "History"
         ImageIcon iconexp = new ImageIcon ("images/expand.png");
         JButton bexprest = new JButton(iconexp);
         bexprest.setOpaque(false);
@@ -152,6 +160,18 @@ public class Client extends JFrame {
         bexprest.addActionListener(new ActionListener() {
             @Override 
             public void actionPerformed(ActionEvent e) {
+                if (historyFrame == null) {
+                    historyFrame = new History();
+                }
+                historyFrame.setVisible(true);
+                historyFrame.setLocation(100, 100);
+                String dateEntry = "Fecha: " + pdate.getText();
+                String expressionEntry = "Expresión: " + tfexpression.getText();
+                String resultEntry = "Resultado: " + taresult.getText() + "\n";
+                
+                historyFrame.addToHistory(dateEntry);
+                historyFrame.addToHistory(expressionEntry);
+                historyFrame.addToHistory(resultEntry);
             }
         });
 
@@ -525,8 +545,9 @@ public class Client extends JFrame {
         add(mainPanel);
 
         // Define the window
-        setTitle("Calculator");
+        setTitle("Calculat");
         setSize(450, 550);
+        setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
 
@@ -536,6 +557,5 @@ public class Client extends JFrame {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Client frame = new Client(); 
         frame.initialize();
-      
     }
 }

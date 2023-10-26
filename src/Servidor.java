@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 public class Servidor extends JFrame {
     Font customFont = new Font("Arial", Font.BOLD, 13);
@@ -16,6 +17,11 @@ public class Servidor extends JFrame {
         serverTextArea.setFont(customFont);
         add(serverTextArea);
 
+        JScrollPane scrollPane = new JScrollPane(serverTextArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(scrollPane);
+
         setTitle("Servidor");
         setSize(450, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -26,6 +32,11 @@ public class Servidor extends JFrame {
 
     public void logMessage(String message) {
         serverTextArea.append(message + "\n");
+    }
+
+    public double evaluateExpression(String expression) {
+        List<String> postfixExpression = ExpressionTree.infixToPostfix(expression);
+        return ExpressionTree.evaluatePostfix(postfixExpression);
     }
 
     public static void main(String[] args) {
@@ -62,9 +73,11 @@ class clientHandler implements Runnable {
     private Socket socket;
     private Servidor server;
 
+
     public clientHandler(Socket socket, Servidor server) {
         this.socket = socket;
         this.server = server;
+
     }
 
     @Override
@@ -88,11 +101,11 @@ class clientHandler implements Runnable {
             server.logMessage("Expresión: " + expression);
             
             // Pending
-            String result = resultExpression(expression);
+            double result = server.evaluateExpression(expression);
             server.logMessage("Resultado: " + result + "\n");
 
             // Send the result to the client
-            output.writeUTF(result);
+             output.writeDouble(result);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -105,10 +118,5 @@ class clientHandler implements Runnable {
                 e.printStackTrace();
             }
         }
-    }
-
-    // Pending
-    private String resultExpression(String expression) {
-        return expression;
     }
 }

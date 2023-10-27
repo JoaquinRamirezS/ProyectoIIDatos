@@ -1,6 +1,6 @@
 import javax.swing.*;
 import org.opencv.core.Core;
-import org.opencv.features2d.FlannBasedMatcher;
+//import org.opencv.features2d.FlannBasedMatcher;
 import org.opencv.videoio.VideoCapture;
 import java.awt.Color;
 import java.awt.Font;
@@ -13,7 +13,10 @@ import java.awt.event.ActionEvent;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-
+/**
+ * This class represents the main client application for a calculator.
+ * It provides a graphical user interface for inputting expressions and viewing results.
+ */
 public class Client extends JFrame {
     Font customFont = new Font("Arial", Font.BOLD, 18);
     JTextField tfname, tfexpression;
@@ -24,7 +27,9 @@ public class Client extends JFrame {
     JFrame cameraFrame; 
     private History historyFrame;
     
-
+    /**
+     * Initializes the client application and sets up the graphical user interface.
+     */
     public void initialize() {
         //Main Panel
         JPanel mainPanel = new JPanel();
@@ -113,14 +118,14 @@ public class Client extends JFrame {
         bresult.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Se obtienen los valores ingresados
+                // Get the date, name, and expression values 
                 String date = pdate.getText();
                 String name = tfname.getText();
                 String expresion = tfexpression.getText();
 
-                    // Limpieza de la expresión
-                expresion = expresion.replaceAll("\\s+", " "); // Reemplaza múltiples espacios con un solo espacio
-                expresion = expresion.trim(); // Elimina espacios al principio y al final de la expresión
+                 // Clean the expression
+                expresion = expresion.replaceAll("\\s+", " ");  // Clean the expression
+                expresion = expresion.trim();  // Remove leading and trailing spaces
 
         
                 try {
@@ -166,12 +171,12 @@ public class Client extends JFrame {
                 historyFrame.setVisible(true);
                 historyFrame.setLocation(100, 100);
                 String dateEntry = "Fecha: " + pdate.getText();
-                String expressionEntry = "Expresión: " + tfexpression.getText();
+                String expressionEntry = "Expresión: " + tfexpression.getText()+"\n";
                 String resultEntry = "Resultado: " + taresult.getText() + "\n";
                 
-                historyFrame.addToHistory(dateEntry);
-                historyFrame.addToHistory(expressionEntry);
-                historyFrame.addToHistory(resultEntry);
+                historyFrame.addToHistory(dateEntry);//Add date to History
+                historyFrame.addToHistory(expressionEntry);//Add expression to history
+                historyFrame.addToHistory(resultEntry);//   Add the result
             }
         });
 
@@ -185,8 +190,8 @@ public class Client extends JFrame {
         bclean.addActionListener(new ActionListener() {
             @Override 
             public void actionPerformed(ActionEvent e) {
-                tfexpression.setText("");
-                taresult.setText("");
+                tfexpression.setText(""); //Clean the expresion
+                taresult.setText("");//Clean the result
             }
         });
 
@@ -441,7 +446,7 @@ public class Client extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String currentText = tfexpression.getText();
-                String newText = currentText + "**";
+                String newText = currentText + "e";
                 tfexpression.setText(newText);
             }
         });

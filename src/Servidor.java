@@ -9,10 +9,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 
+/**
+ * Server application for handling client connections and evaluating expressions.
+ */
+
 public class Servidor extends JFrame {
     Font customFont = new Font("Arial", Font.BOLD, 13);
     private JTextArea serverTextArea;
 
+    /**
+     * Window with a JTextArea for logging messages.
+     */
     public Servidor() {
         serverTextArea = new JTextArea(10, 40);
         serverTextArea.setEditable(false);
@@ -31,11 +38,21 @@ public class Servidor extends JFrame {
         setVisible(true);
         setResizable(false);
     }
-
+    /**
+     * Logs a message in the server's text area.
+     *
+     * @param message The message to be logged.
+     */
     public void logMessage(String message) {
         serverTextArea.append(message + "\n");
     }
 
+    /**
+     * Evaluates a mathematical expression and returns the result.
+     *
+     * @param expression The mathematical expression to be evaluated.
+     * @return The result of the expression evaluation.
+     */
     public double evaluateExpression(String expression) {
         List<String> postfixExpression = ExpressionTree.infixToPostfix(expression);
         return ExpressionTree.evaluatePostfix(postfixExpression);
@@ -106,7 +123,6 @@ class clientHandler implements Runnable {
             server.logMessage("Nombre: " + name);
             server.logMessage("Expresión: " + expression);
 
-            // Pending
             double result = server.evaluateExpression(expression);
             server.logMessage("Resultado: " + result + "\n");
 

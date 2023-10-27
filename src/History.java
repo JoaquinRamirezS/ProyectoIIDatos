@@ -5,12 +5,17 @@ import javax.swing.JTextArea;
 import java.awt.Color;
 import java.awt.Font;
 
+
+/**
+ * Represents a window for displaying a history of entries.
+ */
 public class History extends JFrame {
     Font customFont = new Font("Arial", Font.BOLD, 13);
     private JTextArea historyTextArea;
-    
-    // Define the window
-    
+
+    /**
+     * Constructs a new History window with a JTextArea to display entries.
+     */
     public History() {
         //TextArea History Window
         historyTextArea = new JTextArea(10, 40);
@@ -31,7 +36,11 @@ public class History extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
    
     }
-    
+    /**
+     * Appends a new entry to the history window.
+     *
+     * @param entry The entry to be added to the history.
+     */  
     public void addToHistory(String entry) {
         historyTextArea.append(entry + "\n");
     }

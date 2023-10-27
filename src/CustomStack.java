@@ -1,3 +1,7 @@
+/**
+ * A generic stack data structure implementation.
+ * @param <T> The type of elements to be stored in the stack.
+ */
 public class CustomStack<T> {
     private Node<T> top;  // Nodo en la parte superior de la pila
     private int size;     // Tamaño de la pila

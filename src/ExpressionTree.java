@@ -1,6 +1,10 @@
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * The ExpressionTree class provides methods for converting and evaluating
+ * mathematical expressions in infix notation.
+ */
 public class ExpressionTree {
     private static final Pattern OPERATOR = Pattern.compile("[+\\-*/%&|^e~]|\\*\\*|\\*\\*");
 
@@ -17,25 +21,37 @@ public class ExpressionTree {
             case "|":
             case "^":
                 return 3;
-            case "~":
+            case "e":
                 return 4;
-            case "**":
+            case "~":
                 return 5;
             default:
                 return 0;
           }
      }
-
+    /**
+     * Converts an infix mathematical expression to a postfix notation.
+     *
+     * @param expression The infix expression to be converted.
+     * @return A list of tokens in postfix notation.
+     */
     public static List<String> infixToPostfix(String expression) { //Almacena la expresion postfija 
         List<String> postfix = new ArrayList<>();
         CustomStack<String> operatorStack = new CustomStack<>(); //Pila para operadores 
-        String[] tokens = expression.split("(?=[+\\-*/%&|^e~()])|(?<=[+\\-*/%&|^e~()])"); 
+        String[] tokens = expression.split("(?=[+\\-*/%&|^e~()])|(?<=[+\\-*/%&|^e~()])|\\s+"); 
 
         for (String token : tokens) {
             if (token.isEmpty()) {
                 continue; // Salta tokens vacíos
             }
-            if (OPERATOR.matcher(token).matches() || token.equals("**")){
+            if (OPERATOR.matcher(token).matches()){
+                if (token.equals("~")) {
+                    if (!operatorStack.isEmpty() && !operatorStack.peek().equals("(")) {
+                        // Operador "~" en medio de la expresión
+                        postfix.add("~");
+                        continue;
+                    }
+                }
                     //Se verifica que la pila de operadores no esté vacía, sino lo hay lo que precede son números y se agregan en el token (número)else
                     //Se compara la precedencia del operador en token con la precedencia en el peek (cima) de la pila de operadores
                 while (!operatorStack.isEmpty() && !token.equals("(")  && Precedence(token) <= Precedence(operatorStack.peek())) {
@@ -77,35 +93,61 @@ public class ExpressionTree {
         return postfix;
     }
 
+    /* Evaluates a postfix mathematical expression.
+    *
+    * @param postfix The list of tokens in postfix notation to be evaluated.
+    * @return The result of the evaluation.
+    */
     public static double evaluatePostfix(List<String> postfix) {
         CustomStack<Double> operandStack = new CustomStack<>();
-
+    
         for (String token : postfix) {
-                    // Si al evaluar la operación postfija el token es un operador se toman los dos operados superiores y se resaliza la operación
-                    //(Estos operandos se sacan de la pila permanentemente)
             if (OPERATOR.matcher(token).matches()) {
-                double oper1 = operandStack.pop();
-                double oper2 = operandStack.pop();
-                double result = resolutionExpression(oper1, oper2, token);
-
-                //se coloca el resultado de esto en la pila 
-                operandStack.push(result);
+                if (token.equals("-")) {
+                    if (operandStack.size() >= 2) {
+                        // Operador binario "-" detectado
+                        double oper2 = operandStack.pop();
+                        double oper1 = operandStack.pop();
+                        operandStack.push(oper1 - oper2); // Restar oper2 de oper1
+                    } else if (operandStack.size() == 1) {
+                        // Operador unario "-" detectado
+                        double oper1 = operandStack.pop();
+                        operandStack.push(-oper1); // Aplicar negación unaria
+                    } else {
+                        throw new IllegalArgumentException("Faltan operandos para el operador '-'");
+                    }
+                } else if (token.equals("~") && operandStack.size() >= 1) {
+                    // Operador unario "~" detectado
+                    double oper1 = operandStack.pop();
+                    operandStack.push((double) (~ (int) oper1)); 
+                } else {
+                    double oper1 = operandStack.pop();
+                    double oper2 = operandStack.pop();
+                    double result = resolutionExpression(oper1, oper2, token);
+                    operandStack.push(result);
+                }
             } else {
-                    //Si el token es un numero se hace push en la pila
-                    //Double para un resultado de mayor precisión(en caso de floats)
                 operandStack.push(Double.parseDouble(token));
             }
         }
-        //Con pop se saca el resultado final de la operación 
+    
         return operandStack.pop();
     }
 
+    /**
+     * Resolves a binary mathematical operation between two operands.
+     *
+     * @param num1     The first operand.
+     * @param num2     The second operand.
+     * @param operator The operator to be applied.
+     * @return The result of the operation.
+     */
     private static double resolutionExpression(double num1, double num2, String operator) { //double for more precision
         switch (operator) {
             case "+":
                 return num1 + num2;
             case "-":
-                return num2 - num1;
+                return num1 - num2;
             case "*":
                 return num1 * num2;
             case "/":
@@ -127,12 +169,10 @@ public class ExpressionTree {
             case "^": 
                 return Math.pow(num2, num1);
 //Se aplica a un solo numero pues se desea sacar el complemento a uno de este de este 
-//Pendiente su correcta implementacion
             case "~":
                 return  (double) (~ (int) num1);
-//Pendiente su correcta implementacion
-//Considerar posibles cambios
-            case "**":
+
+            case "e":
                 return Math.pow(num2,num1);
            
             default:
@@ -146,9 +186,7 @@ public class ExpressionTree {
         String infixExpression = scanner.nextLine();
         scanner.close();
 
-        // Eliminar espacios innecesarios y asegurarse de que los operadores y operandos estén separados
-        infixExpression = infixExpression.replaceAll("\\s+", "");
-        infixExpression = infixExpression.replaceAll("((?<=[+\\-*/%&|^e~])|(?=[+\\-*/%&|^e~]))", " ");
+        infixExpression = infixExpression.trim();
     
         List<String> postfixExpression = infixToPostfix(infixExpression);
         System.out.println("Expresión postfija: " + postfixExpression);
